@@ -1,4 +1,8 @@
-jobs:
+on:
+  push:
+    branches: "feature/*"
+
+obs:
   build:
     runs-on: ubuntu-latest
     steps:
@@ -9,7 +13,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '21'
-          distribution: ''
+          distribution: 'temurin'
 
       - name: Create AccountKey.json
         env:
