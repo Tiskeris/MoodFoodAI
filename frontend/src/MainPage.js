@@ -27,7 +27,7 @@ const MainPage = () => {
 
                 if (user) {
                     try {
-                        const idToken = await user.getIdToken(true); // Force token refresh
+                        const idToken = await user.getIdToken(true);
                         const response = await fetch('http://localhost:8080/auth/photo-url', {
                             method: 'GET',
                             headers: {
