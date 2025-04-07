@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { auth, storage } from './firebase';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const MainPage = () => {
     const [file, setFile] = useState(null);
     const [photoUrl, setPhotoUrl] = useState('');
-    const [error, setError] = useState(''); // Add error state
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -22,14 +24,11 @@ const MainPage = () => {
                     if (!response.ok) {
                         throw new Error('Failed to fetch photo URL');
                     }
-
                     const url = await response.text();
                     setPhotoUrl(url);
                 } catch (error) {
                     console.error('Error fetching photo URL:', error.message);
                 }
-            } else {
-                //console.error("User not authenticated");
             }
         });
 
@@ -43,7 +42,8 @@ const MainPage = () => {
 
     const handleUpload = async () => {
         if (!file) {
-            setError("No file selected");
+            console.error("No file selected");
+            toast.error("No file selected");
             return;
         }
 
@@ -66,7 +66,6 @@ const MainPage = () => {
 
             const fileRef = ref(storage, `users/${user.uid}/profile.jpg`);
 
-
             try {
                 await deleteObject(fileRef);
             } catch (error) {
@@ -76,7 +75,10 @@ const MainPage = () => {
             await uploadBytes(fileRef, file);
             const downloadURL = await getDownloadURL(fileRef);
             setPhotoUrl(downloadURL);
+
             console.log("File uploaded successfully. URL:", downloadURL);
+            toast.success("File uploaded successfully!");
+
         } catch (error) {
             setError("File upload failed: " + error.message);
         }
@@ -97,6 +99,7 @@ const MainPage = () => {
             <button onClick={handleUpload}>Upload Photo</button>
             {error && <p style={{ color: 'red' }}>{error}</p>}
             {photoUrl && <img src={photoUrl} width="auto" height={200} alt="Uploaded" />}
+            <ToastContainer />
         </div>
     );
 };
