@@ -209,7 +209,7 @@ describe('MainPage handleUpload Tests', () => {
 
         await waitFor(() => {
             expect(console.error).toHaveBeenCalledWith('No existing file to delete');
-            expect(uploadBytes).toHaveBeenCalled(); // Upload should still proceed
+            expect(uploadBytes).toHaveBeenCalled();
             expect(toast.success).toHaveBeenCalledWith('File uploaded successfully!');
         });
     });

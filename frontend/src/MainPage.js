@@ -13,18 +13,16 @@ const MainPage = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Clear photo state when component mounts or remounts
+
         setPhotoUrl('');
         setFile(null);
 
-        // Initialize with a dummy function in case the listener setup fails
         let unsubscribe = () => {};
 
         try {
             const authUnsubscribe = auth.onAuthStateChanged(async (user) => {
                 console.log("Auth state changed, current user:", user?.uid);
 
-                // Clear photo URL when user changes or signs out
                 setPhotoUrl('');
 
                 if (user) {
@@ -57,7 +55,6 @@ const MainPage = () => {
                 }
             });
 
-            // Only assign if it's actually a function
             if (typeof authUnsubscribe === 'function') {
                 unsubscribe = authUnsubscribe;
             } else {
@@ -118,7 +115,7 @@ const MainPage = () => {
         const validTypes = ['image/jpeg', 'image/png'];
         if (!validTypes.includes(file.type)) {
             setError("Invalid file type. Only JPG and PNG are allowed.");
-            toast.error("File type not allowed");
+                toast.error("File type not allowed");
             return;
         }
 
