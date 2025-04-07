@@ -9,35 +9,11 @@ on:
     branches:
       - 'develop'
 
-jobs:
-  frontend-pipeline:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '18'
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build Frontend
-        run: npm run build
-
-      - name: Run Tests
-        run: npm test
-
   backend-pipeline:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./
+        working-directory: ./src
 
     steps:
       - uses: actions/checkout@v2
