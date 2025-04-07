@@ -5,65 +5,93 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { useNavigate } from 'react-router';
+
 const MainPage = () => {
     const [file, setFile] = useState(null);
     const [photoUrl, setPhotoUrl] = useState('');
-    const [error, setError] = useState(''); // Add error state
+    const [error, setError] = useState('');
     const navigate = useNavigate();
+
     useEffect(() => {
         // Clear photo state when component mounts or remounts
         setPhotoUrl('');
         setFile(null);
 
-        const unsubscribe = auth.onAuthStateChanged(async (user) => {
-            console.log("Auth state changed, current user:", user?.uid);
+        // Initialize with a dummy function in case the listener setup fails
+        let unsubscribe = () => {};
 
-            // Clear photo URL when user changes or signs out
-            setPhotoUrl('');
+        try {
+            const authUnsubscribe = auth.onAuthStateChanged(async (user) => {
+                console.log("Auth state changed, current user:", user?.uid);
 
-            if (user) {
-                try {
-                    const idToken = await user.getIdToken(true); // Force token refresh
-                    const response = await fetch('http://localhost:8080/auth/photo-url', {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${idToken}`,
-                        },
-                        // Prevent caching
-                        cache: 'no-store'
-                    });
+                // Clear photo URL when user changes or signs out
+                setPhotoUrl('');
 
-                    if (response.status === 404) {
-                        // No photo found for this user
-                        console.log("No photo found for user");
-                        return;
+                if (user) {
+                    try {
+                        const idToken = await user.getIdToken(true); // Force token refresh
+                        const response = await fetch('http://localhost:8080/auth/photo-url', {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${idToken}`,
+                            },
+                            // Prevent caching
+                            cache: 'no-store'
+                        });
+
+                        if (response.status === 404) {
+                            // No photo found for this user
+                            console.log("No photo found for user");
+                            return;
+                        }
+
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch photo URL');
+                        }
+                        const url = await response.text();
+                        // Add cache busting parameter
+                        setPhotoUrl(`${url}&t=${Date.now()}`);
+                    } catch (error) {
+                        console.error('Error fetching photo URL:', error.message);
                     }
-
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch photo URL');
-                    }
-                    const url = await response.text();
-                    // Add cache busting parameter
-                    setPhotoUrl(`${url}&t=${Date.now()}`);
-                } catch (error) {
-                    console.error('Error fetching photo URL:', error.message);
                 }
-            }
-        });
+            });
 
-        return () => unsubscribe();
+            // Only assign if it's actually a function
+            if (typeof authUnsubscribe === 'function') {
+                unsubscribe = authUnsubscribe;
+            } else {
+                console.error("Auth listener did not return a function");
+            }
+        } catch (error) {
+            console.error("Error setting up auth listener:", error);
+        }
+
+        // Return cleanup function
+        return () => {
+            try {
+                if (typeof unsubscribe === 'function') {
+                    unsubscribe();
+                }
+            } catch (error) {
+                console.error("Error unsubscribing from auth:", error);
+            }
+        };
     }, []);
 
-    const handleFileChange = (e) => {
-        setFile(e.target.files[0]);
-        setError('');
-    };
+    // Clean up resources when component unmounts
     useEffect(() => {
         return () => {
             setPhotoUrl('');
             setFile(null);
         };
     }, []);
+
+    const handleFileChange = (e) => {
+        setFile(e.target.files[0]);
+        setError('');
+    };
+
     const handleSignOut = async () => {
         try {
             await auth.signOut();
@@ -82,7 +110,7 @@ const MainPage = () => {
         }
 
         if (file.size > 5 * 1024 * 1024) {
-            setError("File size exceeds 5MB");
+            console.error("File size exceeds 5MB");
             toast.error("File exceeds 5MB");
             return;
         }
@@ -105,7 +133,7 @@ const MainPage = () => {
             try {
                 await deleteObject(fileRef);
             } catch (error) {
-                console.log("No existing file to delete");
+                console.error("No existing file to delete");
             }
 
             await uploadBytes(fileRef, file);
@@ -116,7 +144,7 @@ const MainPage = () => {
             toast.success("File uploaded successfully!");
 
         } catch (error) {
-            setError("File upload failed: " + error.message);
+            console.error("File upload failed: " + error.message);
             toast.error("File upload failed: " + error.message);
         }
     };
