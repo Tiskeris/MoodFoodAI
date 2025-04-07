@@ -135,8 +135,6 @@ const MainPage = () => {
             {photoUrl && <img src={photoUrl} width="auto" height={200} alt="Uploaded" />}
             <ToastContainer />
             <button onClick={handleSignOut}>Sign Out</button>
-            {error && <p style={{color: 'red'}}>{error}</p>}
-            {photoUrl && <img src={photoUrl} width="auto" height={200} alt="Uploaded"/>}
         </div>
     );
 };
