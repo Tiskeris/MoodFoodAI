@@ -1,34 +1,21 @@
-name: Feature Branch Pipeline
-
-on:
-  push:
-    branches:
-      - 'feature/**'
-      - 'develop'
-  pull_request:
-    branches:
-      - 'develop'
-
 jobs:
-  backend-pipeline:
+  build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: .
-
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - name: Set up JDK 21
+      - name: Setup Java
         uses: actions/setup-java@v2
         with:
           java-version: '21'
-          distribution: 'temurin'
+          distribution: ''
 
-      - name: Build with Maven
-        run: mvn -B package
-
-      - name: Run Tests
-        run: mvn test
+      - name: Create AccountKey.json
         env:
           ACCOUNT_KEY_JSON: ${{ secrets.ACCOUNT_KEY_JSON }}
+        run: |
+          echo "$ACCOUNT_KEY_JSON" > src/main/resources/AccountKey.json
+
+      - name: Build with Maven
+        run: mvn clean install
