@@ -31,4 +31,4 @@ jobs:
       - name: Run Tests
         run: mvn test
         env:
-        ACCOUNT_KEY_JSON: ${{ secrets.ACCOUNT_KEY_JSON }}
+          ACCOUNT_KEY_JSON: ${{ secrets.ACCOUNT_KEY_JSON }}
