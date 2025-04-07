@@ -8,8 +8,14 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
 
+// In your Login.js component
     const handleRegister = async () => {
         try {
+            // Sign out any existing user first
+            if (auth.currentUser) {
+                await auth.signOut();
+            }
+
             const response = await fetch('http://localhost:8080/auth/register', {
                 method: 'POST',
                 headers: {
@@ -22,8 +28,13 @@ const Login = () => {
                 throw new Error(`Register Error: ${response.statusText}`);
             }
 
-            const data = await response.json();
-            console.log('Register Success:', data);
+            const uid = await response.text();
+            console.log('Register Success - User UID:', uid);
+
+            // After registration, you need to explicitly sign in with the new credentials
+            await signInWithEmailAndPassword(auth, email, password);
+
+            navigate('/main');
         } catch (error) {
             console.error('Register Error:', error.message);
         }
@@ -34,7 +45,6 @@ const Login = () => {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const idToken = await userCredential.user.getIdToken(); // Get Firebase token
 
-            // Send token to Spring Boot
             const response = await fetch("http://localhost:8080/auth/login", {
                 method: "POST",
                 headers: {
