@@ -42,7 +42,7 @@ class AuthControllerTests {
 
         when(authService.registerUser(testEmail, testPassword)).thenReturn("User registered successfully");
 
-        String result = authController.registerUser(userDto);
+        String result = String.valueOf(authController.registerUser(userDto));
 
         assertEquals("User registered successfully", result);
         verify(authService).registerUser(testEmail, testPassword);

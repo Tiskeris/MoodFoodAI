@@ -10,12 +10,22 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     public String registerUser(String email, String password) throws Exception {
-        UserRecord.CreateRequest request = new UserRecord.CreateRequest()
-                .setEmail(email)
-                .setPassword(password);
+        try {
+            UserRecord.CreateRequest request = new UserRecord.CreateRequest()
+                    .setEmail(email)
+                    .setPassword(password);
 
-        UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
-        return userRecord.getUid();
+            UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
+            return userRecord.getUid();
+        } catch (FirebaseAuthException e) {
+            System.err.println("Firebase Auth Error: " + e.getErrorCode() + " - " + e.getMessage());
+
+            if (e.getErrorCode().equals("email-already-exists")) {
+                throw new Exception("Email already in use");
+            } else {
+                throw new Exception("Registration failed: " + e.getMessage());
+            }
+        }
     }
 
     public String verifyToken(String idToken) {

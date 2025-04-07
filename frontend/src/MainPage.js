@@ -4,28 +4,47 @@ import { auth, storage } from './firebase';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+import { useNavigate } from 'react-router';
 const MainPage = () => {
     const [file, setFile] = useState(null);
     const [photoUrl, setPhotoUrl] = useState('');
-    const [error, setError] = useState('');
-
+    const [error, setError] = useState(''); // Add error state
+    const navigate = useNavigate();
     useEffect(() => {
+        // Clear photo state when component mounts or remounts
+        setPhotoUrl('');
+        setFile(null);
+
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
+            console.log("Auth state changed, current user:", user?.uid);
+
+            // Clear photo URL when user changes or signs out
+            setPhotoUrl('');
+
             if (user) {
                 try {
-                    const idToken = await user.getIdToken();
+                    const idToken = await user.getIdToken(true); // Force token refresh
                     const response = await fetch('http://localhost:8080/auth/photo-url', {
                         method: 'GET',
                         headers: {
                             'Authorization': `Bearer ${idToken}`,
                         },
+                        // Prevent caching
+                        cache: 'no-store'
                     });
+
+                    if (response.status === 404) {
+                        // No photo found for this user
+                        console.log("No photo found for user");
+                        return;
+                    }
 
                     if (!response.ok) {
                         throw new Error('Failed to fetch photo URL');
                     }
                     const url = await response.text();
-                    setPhotoUrl(url);
+                    // Add cache busting parameter
+                    setPhotoUrl(`${url}&t=${Date.now()}`);
                 } catch (error) {
                     console.error('Error fetching photo URL:', error.message);
                 }
@@ -38,6 +57,21 @@ const MainPage = () => {
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
         setError('');
+    };
+    useEffect(() => {
+        return () => {
+            setPhotoUrl('');
+            setFile(null);
+        };
+    }, []);
+    const handleSignOut = async () => {
+        try {
+            await auth.signOut();
+            setPhotoUrl('');
+            navigate('/');
+        } catch (error) {
+            console.error("Sign out failed:", error);
+        }
     };
 
     const handleUpload = async () => {
@@ -100,6 +134,9 @@ const MainPage = () => {
             {error && <p style={{ color: 'red' }}>{error}</p>}
             {photoUrl && <img src={photoUrl} width="auto" height={200} alt="Uploaded" />}
             <ToastContainer />
+            <button onClick={handleSignOut}>Sign Out</button>
+            {error && <p style={{color: 'red'}}>{error}</p>}
+            {photoUrl && <img src={photoUrl} width="auto" height={200} alt="Uploaded"/>}
         </div>
     );
 };
