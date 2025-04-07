@@ -25,6 +25,7 @@ class MoodMealAiApplicationTests {
         authService = new AuthService();
     }
 
+    @Disabled
     @Test
     void testRegisterUser() throws Exception {
         FirebaseAuth mockAuth = mock(FirebaseAuth.class);

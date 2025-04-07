@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
-
     public String registerUser(String email, String password) throws Exception {
         try {
             UserRecord.CreateRequest request = new UserRecord.CreateRequest()
