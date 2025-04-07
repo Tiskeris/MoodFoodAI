@@ -83,12 +83,14 @@ const MainPage = () => {
 
         if (file.size > 5 * 1024 * 1024) {
             setError("File size exceeds 5MB");
+            toast.error("File exceeds 5MB");
             return;
         }
 
         const validTypes = ['image/jpeg', 'image/png'];
         if (!validTypes.includes(file.type)) {
             setError("Invalid file type. Only JPG and PNG are allowed.");
+            toast.error("File type not allowed");
             return;
         }
 
@@ -115,6 +117,7 @@ const MainPage = () => {
 
         } catch (error) {
             setError("File upload failed: " + error.message);
+            toast.error("File upload failed: " + error.message);
         }
     };
 
