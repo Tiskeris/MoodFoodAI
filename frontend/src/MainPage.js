@@ -4,7 +4,6 @@ import { auth, storage } from './firebase';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { faceApi, faceSecret } from './firebase';
-
 import { useNavigate } from 'react-router';
 
 const MainPage = () => {
@@ -15,7 +14,6 @@ const MainPage = () => {
     const [faceData, setFaceData] = useState(null);
 
     useEffect(() => {
-
         setPhotoUrl('');
         setFile(null);
 
@@ -35,12 +33,10 @@ const MainPage = () => {
                             headers: {
                                 'Authorization': `Bearer ${idToken}`,
                             },
-                            // Prevent caching
                             cache: 'no-store'
                         });
 
                         if (response.status === 404) {
-                            // No photo found for this user
                             console.log("No photo found for user");
                             return;
                         }
@@ -49,7 +45,6 @@ const MainPage = () => {
                             throw new Error('Failed to fetch photo URL');
                         }
                         const url = await response.text();
-                        // Add cache busting parameter
                         setPhotoUrl(`${url}&t=${Date.now()}`);
                     } catch (error) {
                         console.error('Error fetching photo URL:', error.message);
@@ -66,7 +61,6 @@ const MainPage = () => {
             console.error("Error setting up auth listener:", error);
         }
 
-        // Return cleanup function
         return () => {
             try {
                 if (typeof unsubscribe === 'function') {
@@ -78,7 +72,6 @@ const MainPage = () => {
         };
     }, []);
 
-    // Clean up resources when component unmounts
     useEffect(() => {
         return () => {
             setPhotoUrl('');
@@ -100,6 +93,12 @@ const MainPage = () => {
             console.error("Sign out failed:", error);
         }
     };
+
+    useEffect(() => {
+        if (faceData) {
+            console.log("Emotion: ", JSON.stringify(faceData.faces[0]?.attributes?.emotion));
+        }
+    }, [faceData]);
 
     const handleUpload = async () => {
         if (!file) {
@@ -196,12 +195,6 @@ const MainPage = () => {
             <button onClick={handleUpload}>Upload Photo</button>
             {error && <p style={{ color: 'red' }}>{error}</p>}
             {photoUrl && <img src={photoUrl} width="auto" height={200} alt="Uploaded" />}
-            {faceData && (
-                <div>
-                    <h3>Face++ Analysis Results:</h3>
-                    <p>Emotion: {JSON.stringify(faceData.faces[0]?.attributes?.emotion)}</p>
-                </div>
-            )}
             <ToastContainer />
             <button onClick={handleSignOut}>Sign Out</button>
         </div>
