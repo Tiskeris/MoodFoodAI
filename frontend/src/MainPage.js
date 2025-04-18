@@ -3,6 +3,7 @@ import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage
 import { auth, storage } from './firebase';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { faceApi, faceSecret } from './firebase';
 
 import { useNavigate } from 'react-router';
 
@@ -11,6 +12,7 @@ const MainPage = () => {
     const [photoUrl, setPhotoUrl] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const [faceData, setFaceData] = useState(null);
 
     useEffect(() => {
 
@@ -115,7 +117,7 @@ const MainPage = () => {
         const validTypes = ['image/jpeg', 'image/png'];
         if (!validTypes.includes(file.type)) {
             setError("Invalid file type. Only JPG and PNG are allowed.");
-                toast.error("File type not allowed");
+            toast.error("File type not allowed");
             return;
         }
 
@@ -140,9 +142,42 @@ const MainPage = () => {
             console.log("File uploaded successfully. URL:", downloadURL);
             toast.success("File uploaded successfully!");
 
+            await analyzeImageWithFacePlusPlus(downloadURL);
+
         } catch (error) {
             console.error("File upload failed: " + error.message);
             toast.error("File upload failed: " + error.message);
+        }
+    };
+
+    const analyzeImageWithFacePlusPlus = async (imageUrl) => {
+        const apiKey = faceApi;
+        const apiSecret = faceSecret;
+        const apiUrl = 'https://api-us.faceplusplus.com/facepp/v3/detect';
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    api_key: apiKey,
+                    api_secret: apiSecret,
+                    image_url: imageUrl,
+                    return_attributes: 'emotion',
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Face++ API request failed');
+            }
+
+            const data = await response.json();
+            setFaceData(data);
+            console.log('Face++ API response:', data);
+        } catch (error) {
+            setError('Face++ API error: ' + error.message);
         }
     };
 
@@ -161,6 +196,12 @@ const MainPage = () => {
             <button onClick={handleUpload}>Upload Photo</button>
             {error && <p style={{ color: 'red' }}>{error}</p>}
             {photoUrl && <img src={photoUrl} width="auto" height={200} alt="Uploaded" />}
+            {faceData && (
+                <div>
+                    <h3>Face++ Analysis Results:</h3>
+                    <p>Emotion: {JSON.stringify(faceData.faces[0]?.attributes?.emotion)}</p>
+                </div>
+            )}
             <ToastContainer />
             <button onClick={handleSignOut}>Sign Out</button>
         </div>
