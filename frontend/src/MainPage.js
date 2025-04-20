@@ -17,7 +17,9 @@ const MainPage = () => {
     useEffect(() => {
         setPhotoUrl('');
         setFile(null);
+    }, []);
 
+    useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
             console.log("Auth state changed, current user:", user?.uid);
             setPhotoUrl('');
@@ -47,16 +49,8 @@ const MainPage = () => {
                 } catch (error) {
                     console.error('Error fetching photo URL:', error.message);
                 }
-            });
-
-            if (typeof authUnsubscribe === 'function') {
-                unsubscribe = authUnsubscribe;
-            } else {
-                console.error("Auth listener did not return a function");
             }
-        } catch (error) {
-            console.error("Error setting up auth listener:", error);
-        }
+        });
 
         return () => {
             try {
@@ -70,11 +64,10 @@ const MainPage = () => {
     }, []);
 
     useEffect(() => {
-        return () => {
-            setPhotoUrl('');
-            setFile(null);
-        };
-    }, []);
+        if (faceData) {
+            console.log("Emotion: ", JSON.stringify(faceData.faces[0]?.attributes?.emotion));
+        }
+    }, [faceData]);
 
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
@@ -90,12 +83,6 @@ const MainPage = () => {
             console.error("Sign out failed:", error);
         }
     };
-
-    useEffect(() => {
-        if (faceData) {
-            console.log("Emotion: ", JSON.stringify(faceData.faces[0]?.attributes?.emotion));
-        }
-    }, [faceData]);
 
     const handleUpload = async () => {
         if (!file) {
@@ -174,7 +161,9 @@ const MainPage = () => {
             console.log('Face++ API response:', data);
         } catch (error) {
             setError('Face++ API error: ' + error.message);
-    // 👇 NEW: Handle chat API request
+        }
+    };
+
     const handleChatSubmit = async () => {
         if (!userInput.trim()) {
             toast.error("Please enter some text first!");
@@ -222,7 +211,6 @@ const MainPage = () => {
             <ToastContainer />
             <button onClick={handleSignOut}>Sign Out</button>
 
-            {/* 👇 NEW: Chat Text Field */}
             <div style={{ marginTop: "20px" }}>
                 <h3>Ask the AI</h3>
                 <input
