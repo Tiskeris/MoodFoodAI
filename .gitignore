@@ -3,9 +3,9 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-src/main/resources/AccountKey.json
 frontend/src/firebase.js
-src/main/resources/application.properties
+src/main/resources
+
 ### STS ###
 .apt_generated
 .classpath
