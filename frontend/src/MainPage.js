@@ -5,7 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { faceApi, faceSecret } from './firebase';
 import { useNavigate } from 'react-router';
-import { getDatabase, ref as dbRef, set, get } from "firebase/database";
+import { getDatabase, ref as dbRef, set, get, update } from "firebase/database";
 
 const MainPage = () => {
     const [file, setFile] = useState(null);
@@ -66,7 +66,7 @@ const MainPage = () => {
         return () => {
             try {
                 if (typeof unsubscribe === 'function') {
-                    unsubscribe();
+                    unsubscribe()
                 }
             } catch (error) {
                 console.error("Error unsubscribing from auth:", error);
@@ -145,6 +145,46 @@ const MainPage = () => {
         }
     };
 
+    const handleSaveEmotion = async (emotionData) => {
+        try {
+            const user = auth.currentUser;
+            if (!user) {
+                throw new Error("User not authenticated");
+            }
+
+            // Find the dominating emotion
+            const dominatingEmotion = Object.keys(emotionData).reduce((a, b) =>
+                emotionData[a] > emotionData[b] ? a : b
+            );
+
+            // Mapping of emotions to suggested places
+            const emotionSuggestions = {
+                anger: "quiet restaurant,cozy cafe,relaxing dining,tea house,garden restaurant,calm ambiance",
+                disgust: "clean restaurant,organic food,vegan restaurant,hygienic cafe,healthy dining,farm-to-table",
+                fear: "family friendly restaurant,well-lit cafe,safe environment,familiar chains,casual dining,cozy restaurant",
+                happiness: "lively restaurant,rooftop bar,live music restaurant,party vibe cafe,trendy restaurant,open-air dining",
+                neutral: "popular restaurants,top rated cafe,all day dining,casual restaurant,bistro,modern eatery",
+                sadness: "comfort food,cozy cafe,dessert shop,book cafe,quiet restaurant,home-style meals",
+                surprise: "themed restaurant,unusual dining,hidden gem restaurant,concept cafe,fusion food,rooftop dining"
+            };
+
+            const suggestedPlaces = emotionSuggestions[dominatingEmotion] || "";
+
+            const userRef = dbRef(database, `users/${user.uid}`);
+
+            await update(userRef, {
+                dominatingEmotion,
+                suggestedPlaces
+            });
+
+            console.log("Dominating emotion and suggestions saved successfully:", dominatingEmotion, suggestedPlaces);
+            toast.success("Dominating emotion and suggestions saved successfully!");
+        } catch (error) {
+            console.error("Failed to save dominating emotion and suggestions:", error);
+            toast.error("Failed to save dominating emotion and suggestions: " + error.message);
+        }
+    };
+
     const analyzeImageWithFacePlusPlus = async (imageUrl) => {
         const apiKey = faceApi;
         const apiSecret = faceSecret;
@@ -171,6 +211,12 @@ const MainPage = () => {
             const data = await response.json();
             setFaceData(data);
             console.log('Face++ API response:', data);
+
+            if (data.faces && data.faces[0]?.attributes?.emotion) {
+                await handleSaveEmotion(data.faces[0].attributes.emotion);
+                console.log("Emotion data saved successfully!");
+            }
+
         } catch (error) {
             setError('Face++ API error: ' + error.message);
         }
