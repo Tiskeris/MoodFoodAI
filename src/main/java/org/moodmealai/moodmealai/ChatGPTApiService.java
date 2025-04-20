@@ -55,17 +55,16 @@ public class ChatGPTApiService {
     }
 
     private String buildPrompt(String userText) {
-        return "The user has provided the following preferences for restaurants and food:\n\n" +
-                "\"" + userText + "\"\n\n" +
-                "Please generate a valid JSON object based on this information with this structure:\n\n" +
-                "{\n" +
-                "  \"likes\": [\"list of liked foods, cuisines, or restaurants\"],\n" +
-                "  \"dislikes\": [\"list of disliked foods, cuisines, or restaurants\"],\n" +
-                "  \"dietaryRestrictions\": [\"list of dietary restrictions the user follows\"],\n" +
-                "  \"pricePreference\": \"budget, mid-range, or high-end\",\n" +
-                "  \"atmospherePreferences\": [\"list of atmosphere preferences like quiet, lively, outdoor seating, etc.\"],\n" +
-                "  \"otherNotes\": \"any other relevant information\"\n" +
-                "}\n\n" +
-                "Return only the JSON — no extra text.";
+        return """
+            The user has provided the following preferences for restaurants and food:
+
+            """ + userText + """
+
+            Based on this, generate a single, well-optimized text search query string suitable for use with the Google Places API to find relevant restaurants. 
+            The query should reflect the user's preferences, likes, dislikes, dietary restrictions, price range, and desired atmosphere. 
+            Focus on keywords and phrases that would improve the accuracy of the search.
+
+            Return only the search query string — no extra text, no formatting, no JSON.
+            """;
     }
 }

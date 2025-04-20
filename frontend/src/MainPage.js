@@ -244,6 +244,14 @@ const MainPage = () => {
             const data = await response.text();
             console.log("AI Response:", data);
             toast.success("Response received — check console!");
+            setUserInput('');
+
+            const user = auth.currentUser;
+
+            const userRef = dbRef(database, `users/${user.uid}`);
+            await update(userRef, {
+                prompt: data
+            });
 
         } catch (error) {
             console.error("Error calling chat API:", error);
