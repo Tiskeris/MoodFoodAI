@@ -72,7 +72,7 @@ const MainPage = () => {
                 console.error("Error unsubscribing from auth:", error);
             }
         };
-    }, []);
+    }, [database]);
 
     useEffect(() => {
         if (faceData) {
@@ -250,7 +250,7 @@ const MainPage = () => {
 
             const userRef = dbRef(database, `users/${user.uid}`);
             await update(userRef, {
-                prompt: data
+                prompt: data + " near " + savedAddress
             });
 
         } catch (error) {

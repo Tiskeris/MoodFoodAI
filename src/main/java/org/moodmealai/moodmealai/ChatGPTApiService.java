@@ -64,7 +64,7 @@ public class ChatGPTApiService {
             The query should reflect the user's preferences, likes, dislikes, dietary restrictions, price range, and desired atmosphere. 
             Focus on keywords and phrases that would improve the accuracy of the search.
 
-            Return only the search query string — no extra text, no formatting, no JSON.
+            Return only the search query string — no extra text, no formatting, no JSON, no "near me".
             """;
     }
 }
