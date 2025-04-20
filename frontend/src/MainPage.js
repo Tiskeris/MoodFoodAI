@@ -3,38 +3,35 @@ import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage
 import { auth, storage } from './firebase';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 import { useNavigate } from 'react-router';
+
 const MainPage = () => {
     const [file, setFile] = useState(null);
     const [photoUrl, setPhotoUrl] = useState('');
-    const [error, setError] = useState(''); // Add error state
+    const [error, setError] = useState('');
+    const [userInput, setUserInput] = useState('');
     const navigate = useNavigate();
+
     useEffect(() => {
-        // Clear photo state when component mounts or remounts
         setPhotoUrl('');
         setFile(null);
 
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
             console.log("Auth state changed, current user:", user?.uid);
-
-            // Clear photo URL when user changes or signs out
             setPhotoUrl('');
 
             if (user) {
                 try {
-                    const idToken = await user.getIdToken(true); // Force token refresh
+                    const idToken = await user.getIdToken(true);
                     const response = await fetch('http://localhost:8080/auth/photo-url', {
                         method: 'GET',
                         headers: {
                             'Authorization': `Bearer ${idToken}`,
                         },
-                        // Prevent caching
                         cache: 'no-store'
                     });
 
                     if (response.status === 404) {
-                        // No photo found for this user
                         console.log("No photo found for user");
                         return;
                     }
@@ -42,8 +39,8 @@ const MainPage = () => {
                     if (!response.ok) {
                         throw new Error('Failed to fetch photo URL');
                     }
+
                     const url = await response.text();
-                    // Add cache busting parameter
                     setPhotoUrl(`${url}&t=${Date.now()}`);
                 } catch (error) {
                     console.error('Error fetching photo URL:', error.message);
@@ -54,16 +51,18 @@ const MainPage = () => {
         return () => unsubscribe();
     }, []);
 
-    const handleFileChange = (e) => {
-        setFile(e.target.files[0]);
-        setError('');
-    };
     useEffect(() => {
         return () => {
             setPhotoUrl('');
             setFile(null);
         };
     }, []);
+
+    const handleFileChange = (e) => {
+        setFile(e.target.files[0]);
+        setError('');
+    };
+
     const handleSignOut = async () => {
         try {
             await auth.signOut();
@@ -121,6 +120,36 @@ const MainPage = () => {
         }
     };
 
+    // 👇 NEW: Handle chat API request
+    const handleChatSubmit = async () => {
+        if (!userInput.trim()) {
+            toast.error("Please enter some text first!");
+            return;
+        }
+
+        try {
+            const response = await fetch("http://localhost:8080/api/chat/response", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain"
+                },
+                body: userInput
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to get chat response");
+            }
+
+            const data = await response.text();
+            console.log("AI Response:", data);
+            toast.success("Response received — check console!");
+
+        } catch (error) {
+            console.error("Error calling chat API:", error);
+            toast.error("Failed to get AI response");
+        }
+    };
+
     return (
         <div>
             <h2>Upload Photo</h2>
@@ -138,6 +167,21 @@ const MainPage = () => {
             {photoUrl && <img src={photoUrl} width="auto" height={200} alt="Uploaded" />}
             <ToastContainer />
             <button onClick={handleSignOut}>Sign Out</button>
+
+            {/* 👇 NEW: Chat Text Field */}
+            <div style={{ marginTop: "20px" }}>
+                <h3>Ask the AI</h3>
+                <input
+                    type="text"
+                    value={userInput}
+                    onChange={(e) => setUserInput(e.target.value)}
+                    placeholder="Type your food preferences..."
+                    style={{ width: "300px", padding: "8px" }}
+                />
+                <button onClick={handleChatSubmit} style={{ marginLeft: "10px", padding: "8px" }}>
+                    Send
+                </button>
+            </div>
         </div>
     );
 };
