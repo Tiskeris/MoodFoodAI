@@ -5,6 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { faceApi, faceSecret } from './firebase';
 import { useNavigate } from 'react-router';
+import { getDatabase, ref as dbRef, set, get } from "firebase/database";
 
 const MainPage = () => {
     const [file, setFile] = useState(null);
@@ -12,7 +13,10 @@ const MainPage = () => {
     const [error, setError] = useState('');
     const [faceData, setFaceData] = useState(null);
     const [userInput, setUserInput] = useState('');
+    const [address, setAddress] = useState('');
+    const [savedAddress, setSavedAddress] = useState('');
     const navigate = useNavigate();
+    const database = getDatabase();
 
     useEffect(() => {
         setPhotoUrl('');
@@ -23,9 +27,11 @@ const MainPage = () => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
             console.log("Auth state changed, current user:", user?.uid);
             setPhotoUrl('');
+            setSavedAddress('');
 
             if (user) {
                 try {
+                    // Fetch photo URL
                     const idToken = await user.getIdToken(true);
                     const response = await fetch('http://localhost:8080/auth/photo-url', {
                         method: 'GET',
@@ -37,17 +43,22 @@ const MainPage = () => {
 
                     if (response.status === 404) {
                         console.log("No photo found for user");
-                        return;
+                    } else if (response.ok) {
+                        const url = await response.text();
+                        setPhotoUrl(`${url}&t=${Date.now()}`);
                     }
 
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch photo URL');
-                    }
+                    // Fetch user's address from Firebase
+                    const userAddressRef = dbRef(database, `users/${user.uid}/address`);
+                    const addressSnapshot = await get(userAddressRef);
 
-                    const url = await response.text();
-                    setPhotoUrl(`${url}&t=${Date.now()}`);
+                    if (addressSnapshot.exists()) {
+                        setSavedAddress(addressSnapshot.val());
+                    } else {
+                        console.log("No address found for user");
+                    }
                 } catch (error) {
-                    console.error('Error fetching photo URL:', error.message);
+                    console.error('Error fetching user data:', error.message);
                 }
             }
         });
@@ -78,6 +89,7 @@ const MainPage = () => {
         try {
             await auth.signOut();
             setPhotoUrl('');
+            setSavedAddress('');
             navigate('/');
         } catch (error) {
             console.error("Sign out failed:", error);
@@ -193,6 +205,33 @@ const MainPage = () => {
         }
     };
 
+    const handleAddressSubmit = async () => {
+        if (!address.trim()) {
+            toast.error("Please enter your address!");
+            return;
+        }
+
+        try {
+            const user = auth.currentUser;
+            if (!user) {
+                throw new Error("User not authenticated");
+            }
+
+            // Save address to Firebase Realtime Database
+            const userAddressRef = dbRef(database, `users/${user.uid}/address`);
+            await set(userAddressRef, address);
+
+            console.log("Address saved successfully!");
+            toast.success("Address saved successfully!");
+            setSavedAddress(address);
+            setAddress('');
+
+        } catch (error) {
+            console.error("Failed to save address:", error);
+            toast.error("Failed to save address: " + error.message);
+        }
+    };
+
     return (
         <div>
             <h2>Upload Photo</h2>
@@ -208,8 +247,23 @@ const MainPage = () => {
             <button onClick={handleUpload}>Upload Photo</button>
             {error && <p style={{ color: 'red' }}>{error}</p>}
             {photoUrl && <img src={photoUrl} width="auto" height={200} alt="Uploaded" />}
-            <ToastContainer />
-            <button onClick={handleSignOut}>Sign Out</button>
+
+            <div style={{ marginTop: "20px" }}>
+                <h3>Your Address</h3>
+                <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Enter your address"
+                    style={{ width: "300px", padding: "8px" }}
+                />
+                <button onClick={handleAddressSubmit} style={{ marginLeft: "10px", padding: "8px" }}>
+                    Save Address
+                </button>
+                {savedAddress && (
+                    <p>Your saved address: {savedAddress}</p>
+                )}
+            </div>
 
             <div style={{ marginTop: "20px" }}>
                 <h3>Ask the AI</h3>
@@ -224,6 +278,9 @@ const MainPage = () => {
                     Send
                 </button>
             </div>
+
+            <ToastContainer />
+            <button onClick={handleSignOut} style={{ marginTop: "20px" }}>Sign Out</button>
         </div>
     );
 };
