@@ -299,19 +299,19 @@ const MainPage = () => {
                 />
             </label>
             <button onClick={handleUpload}>Upload Photo</button>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            {photoUrl && <img src={photoUrl} width="auto" height={200} alt="Uploaded" />}
+            {error && <p style={{color: 'red'}}>{error}</p>}
+            {photoUrl && <img src={photoUrl} width="auto" height={200} alt="Uploaded"/>}
 
-            <div style={{ marginTop: "20px" }}>
+            <div style={{marginTop: "20px"}}>
                 <h3>Your Address</h3>
                 <input
                     type="text"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     placeholder="Enter your address"
-                    style={{ width: "300px", padding: "8px" }}
+                    style={{width: "300px", padding: "8px"}}
                 />
-                <button onClick={handleAddressSubmit} style={{ marginLeft: "10px", padding: "8px" }}>
+                <button onClick={handleAddressSubmit} style={{marginLeft: "10px", padding: "8px"}}>
                     Save Address
                 </button>
                 {savedAddress && (
@@ -319,22 +319,24 @@ const MainPage = () => {
                 )}
             </div>
 
-            <div style={{ marginTop: "20px" }}>
+            <div style={{marginTop: "20px"}}>
                 <h3>Ask the AI</h3>
                 <input
                     type="text"
                     value={userInput}
                     onChange={(e) => setUserInput(e.target.value)}
                     placeholder="Type your food preferences..."
-                    style={{ width: "300px", padding: "8px" }}
+                    style={{width: "300px", padding: "8px"}}
                 />
-                <button onClick={handleChatSubmit} style={{ marginLeft: "10px", padding: "8px" }}>
+                <button onClick={handleChatSubmit} style={{marginLeft: "10px", padding: "8px"}}>
                     Send
                 </button>
             </div>
 
-            <ToastContainer />
-            <button onClick={handleSignOut} style={{ marginTop: "20px" }}>Sign Out</button>
+            <ToastContainer/>
+            <button onClick={handleSignOut} style={{marginTop: "20px"}}>Sign Out</button>
+            <button onClick={() => navigate('/restaurants')} style={{marginTop: "20px"}}>See Restaurants</button>
+
         </div>
     );
 };
