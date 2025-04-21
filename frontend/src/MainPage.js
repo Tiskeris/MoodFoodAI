@@ -387,7 +387,7 @@ const MainPage = () => {
             <ToastContainer/>
             <button onClick={handleSignOut} style={{marginTop: "20px"}}>Sign Out</button>
             <button onClick={() => navigate('/restaurants')} style={{marginTop: "20px"}}>See Restaurants</button>
-
+            <button onClick={() => navigate('/recipes')} style={{marginTop: "20px"}}>See Recipes</button>
         </div>
     );
 };
