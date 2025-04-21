@@ -4,7 +4,7 @@ import { getDatabase, ref, get } from 'firebase/database';
 
 const RestaurantsPage = () => {
     const [places, setPlaces] = useState([]);
-    const [imageLoadAttempts, setImageLoadAttempts] = useState({}); // Track retry attempts
+    const [imageLoadAttempts, setImageLoadAttempts] = useState({});
 
     useEffect(() => {
         const fetchPromptAndPlaces = async () => {
@@ -14,7 +14,6 @@ const RestaurantsPage = () => {
                     throw new Error("User not authenticated");
                 }
 
-                // Fetch the prompt from the database
                 const database = getDatabase();
                 const userRef = ref(database, `users/${user.uid}/prompt`);
                 const snapshot = await get(userRef);
@@ -22,7 +21,6 @@ const RestaurantsPage = () => {
                 if (snapshot.exists()) {
                     const prompt = snapshot.val();
 
-                    // Fetch places using the prompt
                     const response = await fetch(`http://localhost:8080/places/search?query=${prompt}`);
                     if (!response.ok) {
                         throw new Error("Failed to fetch places");
@@ -40,7 +38,6 @@ const RestaurantsPage = () => {
         fetchPromptAndPlaces();
     }, []);
 
-    // Retry loading failed images (max 3 attempts)
     const handleImageError = (placeId, photoUrl, attempt = 1) => {
         if (attempt <= 3) {
             console.log(`Retrying image load for place ${placeId} (attempt ${attempt})`);
@@ -53,6 +50,11 @@ const RestaurantsPage = () => {
         } else {
             console.warn(`Max retries reached for place ${placeId}`);
         }
+    };
+
+    const generateGoogleMapsLink = (address) => {
+        const encodedAddress = encodeURIComponent(address);
+        return `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
     };
 
     return (
@@ -68,7 +70,6 @@ const RestaurantsPage = () => {
                             alt={place.name}
                             width="300"
                             onError={() => handleImageError(place.id, place.photoUrl, imageLoadAttempts[place.id] || 1)}
-                            // Hide image if all retries fail
                             style={{ display: imageLoadAttempts[place.id] > 3 ? 'none' : 'block' }}
                         />
                     ) : (
@@ -77,6 +78,14 @@ const RestaurantsPage = () => {
                     {imageLoadAttempts[place.id] > 3 && (
                         <p style={{ color: 'red' }}>Failed to load photo after 3 attempts.</p>
                     )}
+                    <a
+                        href={generateGoogleMapsLink(place.address)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ display: 'inline-block', marginTop: '8px', color: '#007bff' }}
+                    >
+                        Navigate with Google Maps
+                    </a>
                 </div>
             ))}
         </div>

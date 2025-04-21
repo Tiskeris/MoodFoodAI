@@ -212,13 +212,17 @@ const MainPage = () => {
             setFaceData(data);
             console.log('Face++ API response:', data);
 
-            if (data.faces && data.faces[0]?.attributes?.emotion) {
-                await handleSaveEmotion(data.faces[0].attributes.emotion);
-                console.log("Emotion data saved successfully!");
+            const emotion = data.faces?.[0]?.attributes?.emotion;
+            if (!emotion) {
+                toast.error("Face not found, upload another picture");
+                return;
             }
 
+            await handleSaveEmotion(emotion);
+            console.log("Emotion data saved successfully!");
         } catch (error) {
             setError('Face++ API error: ' + error.message);
+            toast.error('Face++ API error: ' + error.message);
         }
     };
 
@@ -337,20 +341,39 @@ const MainPage = () => {
     };
 
     return (
+
         <div>
             <h2>Upload Photo</h2>
-            <label htmlFor="file-upload">
-                Upload Photo
+            <label htmlFor="file-upload" style={{ display: "inline-block", padding: "10px", backgroundColor: "#007bff", color: "#fff", borderRadius: "4px", cursor: "pointer" }}>
+                Choose File
                 <input
                     id="file-upload"
                     type="file"
                     accept="image/png, image/jpeg"
                     onChange={handleFileChange}
+                    style={{ display: "none" }}
                 />
             </label>
-            <button onClick={handleUpload}>Upload Photo</button>
-            {error && <p style={{color: 'red'}}>{error}</p>}
-            {photoUrl && <img src={photoUrl} width="auto" height={200} alt="Uploaded"/>}
+            <button onClick={handleUpload} style={{ marginLeft: "10px", padding: "10px", backgroundColor: "#28a745", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer" }}>
+                Upload Photo
+            </button>
+            {file && <p>Selected file: {file.name}</p>}
+            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {photoUrl && (
+                <img
+                    src={photoUrl}
+                    width="200"
+                    height="auto"
+                    alt="Uploaded"
+                    style={{
+                        position: "absolute",
+                        top: "10px",
+                        right: "10px",
+                        borderRadius: "8px",
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)"
+                    }}
+                />
+            )}
 
             <div style={{marginTop: "20px"}}>
                 <h3>Your Address</h3>
@@ -381,14 +404,15 @@ const MainPage = () => {
                 <button onClick={handleChatSubmit} style={{marginLeft: "10px", padding: "8px"}}>
                     Send
                 </button>
-
-                <button onClick={handleFoodSuggestions} style={{ marginTop: "20px" }}>
-                    Get Food Suggestions to make at home
-                </button>
             </div>
 
             <ToastContainer/>
-            <button onClick={handleSignOut} style={{marginTop: "20px"}}>Sign Out</button>
+            <button onClick={handleFoodSuggestions} style={{ marginTop: "20px" }}>
+                Get Food Suggestions to make at home
+            </button>
+            <div className="footer-button">
+                <button onClick={handleSignOut} style={{ backgroundColor: "red" }}>Sign Out</button>
+            </div>
             <button onClick={() => navigate('/restaurants')} style={{marginTop: "20px"}}>See Restaurants</button>
             <button onClick={() => navigate('/recipes')} style={{marginTop: "20px"}}>See Recipes</button>
         </div>

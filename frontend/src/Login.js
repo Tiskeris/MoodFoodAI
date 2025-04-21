@@ -105,23 +105,31 @@ const Login = () => {
     };
 
     return (
-        <div>
+        <div className="container">
             <ToastContainer />
-            <h2>Login/Register</h2>
-            <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-            />
-            <button onClick={handleRegister}>Register</button>
-            <button onClick={handleLogin}>Login</button>
+            <h2 className="header">Login/Register</h2>
+            <div className="form-group">
+                <input
+                    type="email"
+                    className="input"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+            </div>
+            <div className="form-group">
+                <input
+                    type="password"
+                    className="input"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+            </div>
+            <div className="button-group">
+                <button className="button" onClick={handleRegister}>Register</button>
+                <button className="button" onClick={handleLogin}>Login</button>
+            </div>
         </div>
     );
 };

@@ -19,9 +19,12 @@ p {
 
 /* Container */
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+    background-color: #f9f9f9; /* Optional background color */
 }
 
 /* Buttons */
@@ -34,6 +37,7 @@ button {
     cursor: pointer;
     font-size: 14px;
     transition: background-color 0.3s ease;
+    margin: 5px; /* Added margin to separate buttons */
 }
 
 button:hover {
@@ -72,15 +76,6 @@ img {
 .Toastify__toast {
     font-size: 14px;
     border-radius: 4px;
-}
-
-/* Sections */
-section {
-    margin-bottom: 20px;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Header */
@@ -143,6 +138,19 @@ footer {
     margin-top: 10px;
 }
 
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.footer-button {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
 /* Success Messages */
 .success {
     color: green;
@@ -159,4 +167,24 @@ footer {
 
 .nav-buttons button {
     flex: 1;
+}
+
+/* File Upload Label */
+label[for="file-upload"] {
+    display: inline-block;
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+label[for="file-upload"]:hover {
+    background-color: #0056b3;
+}
+
+label[for="file-upload"] input {
+    display: none; /* Hide the file input */
 }

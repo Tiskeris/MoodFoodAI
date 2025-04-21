@@ -111,8 +111,6 @@ export default function RecipeSearchApp() {
 }
 
 function RecipeCard({ recipe }) {
-    const topLabels = recipe.healthLabels?.slice(0, 3) || [];
-
     return (
         <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
             {recipe.image && (
@@ -126,18 +124,6 @@ function RecipeCard({ recipe }) {
                             e.target.alt = "Recipe image placeholder";
                         }}
                     />
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
-                        <div className="flex flex-wrap gap-2">
-                            {topLabels.map((label, idx) => (
-                                <span
-                                    key={idx}
-                                    className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded"
-                                >
-                  {label}
-                </span>
-                            ))}
-                        </div>
-                    </div>
                 </div>
             )}
 
@@ -145,12 +131,12 @@ function RecipeCard({ recipe }) {
                 <h3 className="text-xl font-bold mb-2 text-gray-800">{recipe.label}</h3>
 
                 <div className="flex items-center text-gray-600 mb-4">
-          <span className="mr-4">
-            <span className="font-semibold">{Math.round(recipe.calories || 0)}</span> cal
-          </span>
+                    <span className="mr-4">
+                        <span className="font-semibold">{Math.round(recipe.calories || 0)}</span> cal
+                    </span>
                     <span>
-            <span className="font-semibold">{recipe.ingredients?.length || 0}</span> ingredients
-          </span>
+                        <span className="font-semibold">{recipe.ingredients?.length || 0}</span> ingredients
+                    </span>
                 </div>
 
                 <div className="flex justify-between items-center mt-6">
