@@ -111,12 +111,12 @@ public class ChatGPTApiService {
             
             """ + emotion + """
 
-            Based on this emotion, suggest additional food that the user might enjoy. 
+            Slightly consider emotion, suggest additional food that the user might enjoy. 
             The user has already mentioned the following foods: 
             
             """ + initialFoods + """
 
-            Consider the emotional connection people often have with food, and suggest foods that align with the given emotion. 
+            Consider given initial foods prompt and give one dish that would be most accurate for the user. 
             Return only one food item only — no extra text, no formatting, no JSON.
             """;
     }

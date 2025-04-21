@@ -12,12 +12,9 @@ export default function RecipeSearchApp() {
         const fetchQueryFromDatabase = async () => {
             try {
                 const database = getDatabase();
-                const user = auth.currentUser; // Ensure the user is authenticated
-                if (!user) {
-                    throw new Error("User not authenticated");
-                }
+                const user = auth.currentUser;
 
-                const queryRef = dbRef(database, `users/${user.uid}/foodPreferences`);
+                const queryRef = dbRef(database, `users/${user.uid}/foodSuggestions`);
                 const querySnapshot = await get(queryRef);
 
                 if (querySnapshot.exists()) {

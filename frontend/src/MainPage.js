@@ -289,11 +289,14 @@ const MainPage = () => {
     const handleFoodSuggestions = async () => {
 
         const user = auth.currentUser;
-        const userRef = dbRef(database, `users/${user.uid}/dominatingEmotion`);
-        const emotionSnapshot = await get(userRef);
-        const emotion = emotionSnapshot.exists() ? emotionSnapshot.val() : "neutral";
 
-        const initialFoods = userInput.trim();
+        const emotionRef = dbRef(database, `users/${user.uid}/dominatingEmotion`);
+        const emotionSnapshot = await get(emotionRef);
+        const emotion = emotionSnapshot.val();
+
+        const initialFoodsRef = dbRef(database, `users/${user.uid}/prompt`);
+        const initialFoodsSnapshot = await get(initialFoodsRef);
+        const initialFoods = initialFoodsSnapshot.val();
 
         try {
             const response = await fetch("http://localhost:8080/api/chat/food-suggestions", {
@@ -325,7 +328,7 @@ const MainPage = () => {
                 foodSuggestions: suggestions
             });
 
-            console.log("Food suggestions saved successfully:", suggestions);
+            console.log("Food suggestions saved successfully:", suggestions, "prompt: ", initialFoods);
             toast.success("Food suggestions saved successfully!");
         } catch (error) {
             console.error("Error fetching food suggestions:", error);
