@@ -54,6 +54,43 @@ public class ChatGPTApiService {
         }
     }
 
+    public String getFoodSuggestions(String emotion, String initialFoods) throws Exception {
+        String prompt = buildFoodPrompt(emotion, initialFoods);
+
+        JSONObject requestBodyJson = new JSONObject();
+        requestBodyJson.put("model", "deepseek/deepseek-r1:free");
+
+        JSONArray messages = new JSONArray();
+        JSONObject userMessage = new JSONObject();
+        userMessage.put("role", "user");
+        userMessage.put("content", prompt);
+        messages.put(userMessage);
+
+        requestBodyJson.put("messages", messages);
+
+        MediaType mediaType = MediaType.parse("application/json");
+        RequestBody body = RequestBody.create(requestBodyJson.toString(), mediaType);
+
+        Request request = new Request.Builder()
+                .url(API_URL)
+                .post(body)
+                .addHeader("Authorization", "Bearer " + API_TOKEN.trim())
+                .addHeader("Content-Type", "application/json")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful())
+                throw new Exception("Unexpected code " + response);
+
+            String responseBody = response.body().string();
+            JSONObject responseJson = new JSONObject(responseBody);
+            JSONArray choices = responseJson.getJSONArray("choices");
+            String content = choices.getJSONObject(0).getJSONObject("message").getString("content");
+
+            return content;
+        }
+    }
+
     private String buildPrompt(String userText) {
         return """
             The user has provided the following preferences for restaurants and food:
@@ -67,4 +104,22 @@ public class ChatGPTApiService {
             Return only the search query string — no extra text, no formatting, no JSON, no "near me".
             """;
     }
+
+    private String buildFoodPrompt(String emotion, String initialFoods) {
+        return """
+            The user is feeling 
+            
+            """ + emotion + """
+
+            Based on this emotion, suggest additional food that the user might enjoy. 
+            The user has already mentioned the following foods: 
+            
+            """ + initialFoods + """
+
+            Consider the emotional connection people often have with food, and suggest foods that align with the given emotion. 
+            Return only one food item only — no extra text, no formatting, no JSON.
+            """;
+    }
+
+
 }

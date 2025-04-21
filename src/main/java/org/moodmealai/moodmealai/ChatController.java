@@ -20,4 +20,14 @@ public class ChatController {
             return "Error occurred: " + e.getMessage();
         }
     }
+
+    @PostMapping("/food-suggestions")
+    public String getFoodSuggestions(@RequestParam String emotion, @RequestParam String initialFoods) {
+        try {
+            return chatGPTApiService.getFoodSuggestions(emotion, initialFoods);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error occurred: " + e.getMessage();
+        }
+    }
 }

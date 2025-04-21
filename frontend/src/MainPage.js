@@ -286,6 +286,53 @@ const MainPage = () => {
         }
     };
 
+    const handleFoodSuggestions = async () => {
+
+        const user = auth.currentUser;
+        const userRef = dbRef(database, `users/${user.uid}/dominatingEmotion`);
+        const emotionSnapshot = await get(userRef);
+        const emotion = emotionSnapshot.exists() ? emotionSnapshot.val() : "neutral";
+
+        const initialFoods = userInput.trim();
+
+        try {
+            const response = await fetch("http://localhost:8080/api/chat/food-suggestions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: new URLSearchParams({
+                    emotion: emotion,
+                    initialFoods: initialFoods
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch food suggestions");
+            }
+
+            const suggestions = await response.text();
+            console.log("Food Suggestions:", suggestions);
+
+            const user = auth.currentUser;
+            if (!user) {
+                throw new Error("User not authenticated");
+            }
+
+            // Save suggestions to Firebase
+            const userRef = dbRef(database, `users/${user.uid}`);
+            await update(userRef, {
+                foodSuggestions: suggestions
+            });
+
+            console.log("Food suggestions saved successfully:", suggestions);
+            toast.success("Food suggestions saved successfully!");
+        } catch (error) {
+            console.error("Error fetching food suggestions:", error);
+            toast.error("Failed to fetch food suggestions: " + error.message);
+        }
+    };
+
     return (
         <div>
             <h2>Upload Photo</h2>
@@ -330,6 +377,10 @@ const MainPage = () => {
                 />
                 <button onClick={handleChatSubmit} style={{marginLeft: "10px", padding: "8px"}}>
                     Send
+                </button>
+
+                <button onClick={handleFoodSuggestions} style={{ marginTop: "20px" }}>
+                    Get Food Suggestions to make at home
                 </button>
             </div>
 
