@@ -1,42 +1,65 @@
 import { useState, useEffect } from 'react';
+import { getDatabase, ref as dbRef, get } from "firebase/database";
+import { auth } from './firebase';
 
 export default function RecipeSearchApp() {
     const [recipes, setRecipes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [query, setQuery] = useState('Spicy Arrabbiata Pasta');
+    const [query, setQuery] = useState('');
 
     useEffect(() => {
-        const fetchRecipes = async () => {
-            setLoading(true);
+        const fetchQueryFromDatabase = async () => {
             try {
-                const response = await fetch(
-                    `https://api.edamam.com/api/recipes/v2?type=public&q=${encodeURIComponent(query)}&app_id=e30cf062&app_key=`
-                );
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch recipes');
+                const database = getDatabase();
+                const user = auth.currentUser; // Ensure the user is authenticated
+                if (!user) {
+                    throw new Error("User not authenticated");
                 }
 
-                const data = await response.json();
-                setRecipes(data.hits || []);
-                setLoading(false);
+                const queryRef = dbRef(database, `users/${user.uid}/foodPreferences`);
+                const querySnapshot = await get(queryRef);
+
+                if (querySnapshot.exists()) {
+                    const fetchedQuery = querySnapshot.val();
+                    setQuery(fetchedQuery);
+                } else {
+                    console.log("No query found in the database");
+                }
             } catch (err) {
+                console.error("Error fetching query from database:", err.message);
                 setError(err.message);
-                setLoading(false);
             }
         };
 
-        fetchRecipes();
-    }, [query]);
+        fetchQueryFromDatabase();
+    }, []);
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        const newQuery = e.target.search.value;
-        if (newQuery.trim()) {
-            setQuery(newQuery);
+    useEffect(() => {
+        if (query) {
+            const fetchRecipes = async () => {
+                setLoading(true);
+                try {
+                    const response = await fetch(
+                        `https://api.edamam.com/api/recipes/v2?type=public&q=${encodeURIComponent(query)}&app_id=e30cf062&app_key=28fc4ae0777544c39422a4ba5ceda8a9`
+                    );
+
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch recipes');
+                    }
+
+                    const data = await response.json();
+                    setRecipes(data.hits || []);
+                    setLoading(false);
+                } catch (err) {
+                    setError(err.message);
+                    setLoading(false);
+                }
+            };
+
+            fetchRecipes();
         }
-    };
+    }, [query]);
 
     if (error) {
         return (
@@ -44,10 +67,6 @@ export default function RecipeSearchApp() {
                 <div className="max-w-6xl mx-auto">
                     <h1 className="text-3xl font-bold text-red-600 mb-6">Error</h1>
                     <p className="text-gray-700">{error}</p>
-                    <p className="mt-4">
-                        Please check your API key and try again. Note: For this demo to work properly,
-                        you need to replace "app_key=x" with your actual Edamam API key.
-                    </p>
                 </div>
             </div>
         );
@@ -59,22 +78,6 @@ export default function RecipeSearchApp() {
                 <div className="max-w-6xl mx-auto px-4">
                     <h1 className="text-3xl font-bold">Delicious Recipe Finder</h1>
                     <p className="mt-2">Find your next favorite dish</p>
-
-                    <form onSubmit={handleSearch} className="mt-4 flex">
-                        <input
-                            type="text"
-                            name="search"
-                            placeholder="Search recipes..."
-                            defaultValue={query}
-                            className="py-2 px-4 rounded-l w-full md:w-1/2 text-gray-800 focus:outline-none"
-                        />
-                        <button
-                            type="submit"
-                            className="bg-yellow-500 hover:bg-yellow-600 py-2 px-6 rounded-r font-semibold transition duration-200"
-                        >
-                            Search
-                        </button>
-                    </form>
                 </div>
             </header>
 
@@ -111,7 +114,6 @@ export default function RecipeSearchApp() {
 }
 
 function RecipeCard({ recipe }) {
-    // Extract health labels to display (showing only up to 3)
     const topLabels = recipe.healthLabels?.slice(0, 3) || [];
 
     return (
